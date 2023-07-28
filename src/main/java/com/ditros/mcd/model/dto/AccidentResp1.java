@@ -1,5 +1,7 @@
 package com.ditros.mcd.model.dto;
 import com.ditros.mcd.enumeration.AccidentStatus;
+import com.ditros.mcd.model.entity.AccidentComment;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -43,6 +45,6 @@ public class AccidentResp1 {
     private List<Map<String, String>> crashImages;
     private ImageVueFormat drawing;
     private AccidentReportResp report;
-    
+    private List<AccidentCommentReq> comment;
 }
 

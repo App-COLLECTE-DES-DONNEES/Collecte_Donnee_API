@@ -2,16 +2,26 @@ package com.ditros.mcd.model.mappers;
 
 import com.ditros.mcd.model.dto.*;
 import com.ditros.mcd.model.entity.Accident;
+import com.ditros.mcd.model.entity.AccidentComment;
 import com.ditros.mcd.util.DateUtil;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class AccidentMapper {
     public AccidentReq fromAccident(Accident accident){
-        if(accident == null)
-            return null;
+        if(accident == null){
+            return null;}else{
+               List<AccidentCommentReq> comments=new ArrayList<AccidentCommentReq>();
+                for(AccidentComment comment: accident.getComment()){
+                       AccidentCommentReq commentaire=new AccidentCommentReq();
+                       commentaire.setComment(comment.getContent());
+                    comments.add(commentaire);
+
+                }
         return new AccidentReq(
                 accident.getId(),
                 accident.getCrashDate(),
@@ -101,7 +111,8 @@ public class AccidentMapper {
                 accident.getStatus(),
                 accident.getDirectCauses().stream().map(directCause -> new DirectCauseResp(directCause.getId(), directCause.getName())).collect(Collectors.toList()),
                 null,
-                null
+                null,
+                comments
         );
-    }
+    }}
 }

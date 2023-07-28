@@ -42,5 +42,5 @@ public class AccidentReq {
     private List<DirectCauseResp> causes;
     private List<ImageVueFormat> crashImages;
     private ImageVueFormat drawing;
-
+    private List<AccidentCommentReq> Comments;
 }

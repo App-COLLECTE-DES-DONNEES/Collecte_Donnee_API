@@ -123,6 +123,8 @@ public class Accident extends JournalData {
     private Organization organization;
     @OneToOne
     private Notification message;
+    @OneToMany(mappedBy = "accident", cascade = CascadeType.ALL)
+    private List<AccidentComment> Comment;
     @Override
     public String toString() {
         return place + " "+ city.getName();

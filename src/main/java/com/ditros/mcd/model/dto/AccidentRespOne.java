@@ -1,5 +1,6 @@
 package com.ditros.mcd.model.dto;
 
+import com.ditros.mcd.model.entity.AccidentComment;
 import com.ditros.mcd.model.entity.PersonAccident;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,4 +36,5 @@ public class AccidentRespOne {
     private List<VehicleAccidentResp> vehicules;
     private List<PersonAccidentResp> persons;
     private CityResp city;
+    private List<AccidentCommentReq> comment;
 }

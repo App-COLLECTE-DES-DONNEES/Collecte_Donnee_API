@@ -20,8 +20,8 @@ public class AccidentBrightnessCondition extends JournalData {
 
     private Long code;
     private String value;
-
     @OneToMany(mappedBy = "brightnessCondition")
     private List<Accident> accidents;
+    
 
 }

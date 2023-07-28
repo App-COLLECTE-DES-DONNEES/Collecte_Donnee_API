@@ -34,6 +34,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class AccidentService {
+    
+    UserMonitoringDao userMoningtoring;
+    AccidentActivityDao accidentActivityDao;
     HttpServletRequest request;
     private AccidentDao accidentDao;
     private DirectCauseDao directCauseDao;
@@ -140,7 +143,7 @@ public class AccidentService {
     private VehicleMapper vehicleMapper;
     private VehicleActionMapper actionMapper;
     private PersonRoadTypeMapper personRoadTypeMapper;
-
+  private AccidentCommentDao accidentcommentDao;
     private AccidentMapper accidentMapper;
     private AlcoholConsumptionMapper alcoholConsumptionMapper;
     private AlcoholTestStatusMapper alcoholTestStatusMapper;
@@ -167,6 +170,7 @@ public class AccidentService {
         List<VehicleAccident> vehiculesAccidents = new ArrayList<VehicleAccident>();
         List<PersonAccident> personAccidents = new ArrayList<PersonAccident>();
         List<DirectCause> directCauses = new ArrayList<DirectCause>();
+        List<AccidentComment> comments = new ArrayList<AccidentComment>();
             Accident a = accidentDao.getById(accidentReq.getId());
             if(a.getVehicleAccidents() !=null){
                 a.getVehicleAccidents().forEach(
@@ -205,7 +209,25 @@ public class AccidentService {
             a.setCity(cityDao.getById(accidentReq.getCity()));
             a.setStatus(accidentReq.getStatus());
             a.setAccidentDate(DateUtil.DateFromText("dd/MM/yyyy HH:mm", accidentReq.getAccidentDate() + " " + accidentReq.getAccidentTime() ));
-       
+            if(!accidentReq.getComments().isEmpty()){ 
+                // le pb vient des enregistrement qui sont de types differents
+            for(AccidentCommentReq comment: accidentReq.getComments()){
+                if(accidentcommentDao.getById(comment.getIdcomment())==null){
+                comments.add(new AccidentComment(userId,comment.getComment(),a)) ;
+            }else{
+               AccidentComment comment1= accidentcommentDao.getById(comment.getIdcomment());
+               comment1.setContent(comment.getComment());
+                 comments.add(comment1);
+           }
+        accidentcommentDao.deleteById(comment.getIdcomment());
+           
+        }
+               
+           
+            a.setComment(comments);}
+
+
+            
         // System.out.println("persons =====> " +accidentReq.getPersons());
         // accidentReq.getVehicules().forEach(vehiculeReq -> System.out.println("Involved vehicles " + vehiculeReq.getPlate()));
         
@@ -399,6 +421,10 @@ public class AccidentService {
         a.setOrganization(user.get().getOrganization());
         a.setAccidentImages(accidentImageList);
         
+        UserMonitoring monitoring=new UserMonitoring();
+        monitoring.setAccidentId(accidentReq.getId());
+        monitoring.setActivityId(accidentActivityDao.getById(new Long(7)).getId());
+        monitoring.setUserId(user.get().getId());
 
         return a.getId();
     }
@@ -412,6 +438,8 @@ public class AccidentService {
         Optional<User> user = userDao.findByKeycloakId(userId);
           System.out.println(accidentReq);
         if(!user.isPresent()) throw new RuntimeException("Error Register your police account in app");
+        List<AccidentComment> comment =new ArrayList<AccidentComment>();
+       
         final Accident accident = new Accident(
                 null,
                 accidentReq.getAccidentDate(),
@@ -450,8 +478,17 @@ public class AccidentService {
                 null,
                 null,
                 null,
-                null,null
+                null,null,comment
         );
+         if(!accidentReq.getComments().isEmpty()){
+         List<AccidentComment> commente =new ArrayList<AccidentComment>();
+        for(AccidentCommentReq comments:accidentReq.getComments()){
+           commente.add(new AccidentComment(userId,comments.getComment(),accident));
+
+        }
+    accident.setComment(commente);
+    
+    }
         System.out.println("persons =====> " +accidentReq.getPersons());
         accidentReq.getVehicules().forEach(vehiculeReq -> System.out.println("Involved vehicles " + vehiculeReq.getPlate()));
         //accidentReq.getPersons().forEach(person -> System.out.println("Involved people " + person.getFirstName()+" "+ person.getLastName()));
@@ -637,6 +674,13 @@ public class AccidentService {
     public AccidentRespOne getOneAccident(Long id){
         Optional<Accident> optAccident = accidentDao.findById(id);
         Accident accident = optAccident.orElseThrow(() -> new RuntimeException("Please verify accident id"));
+        List<AccidentCommentReq> comments=new ArrayList<AccidentCommentReq>();
+        for(AccidentComment comment: accident.getComment()){
+            AccidentCommentReq c=new AccidentCommentReq();
+            c.setIdcomment(comment.getId());
+            c.setComment(comment.getContent());
+                comments.add(c);
+        }
         return new AccidentRespOne(
                 accident.getId(),
                 accident.getCrashDate(),
@@ -743,7 +787,9 @@ public class AccidentService {
                             }
                         })
                         .collect(Collectors.toList()),
-                cityMapper.fromCity(accident.getCity())
+                cityMapper.fromCity(accident.getCity()),
+                comments
+                
         );
     }
 
@@ -1399,7 +1445,13 @@ public AccidentstatResp1 accidentstatistics1(String userId, String year, String 
                                 crashImageList.add(map);
                             }
                     );
-                    
+                    List<AccidentCommentReq> comments=new ArrayList<AccidentCommentReq>();
+                      for(AccidentComment comment: accident.getComment()){
+                            AccidentCommentReq c=new AccidentCommentReq();
+                             c.setIdcomment(comment.getId());
+                                 c.setComment(comment.getContent());
+                                     comments.add(c);
+                             }
                     accidentListResp.add(
                        new AccidentResp1(
                             accident.getId(),
@@ -1504,7 +1556,8 @@ public AccidentstatResp1 accidentstatistics1(String userId, String year, String 
                             new ImageVueFormat(accident.getDrawing(), environment.getProperty("data.collect.address")
                                     +":"+environment.getProperty("data.collect.port")+"/public/images/accident/drawing/"
                                     +  accident.getDrawing() ),
-                            accident.getAccidentReport()==null?null: new AccidentReportResp().fillaccidentReportResp(accident)
+                            accident.getAccidentReport()==null?null: new AccidentReportResp().fillaccidentReportResp(accident),
+                            comments
                     )
                     );
                 });
