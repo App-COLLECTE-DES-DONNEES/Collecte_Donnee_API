@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: com.ditros.mcd.AccidentServiceTest
+-------------------------------------------------------------------------------
+Tests run: 34, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 40.727 s <<< FAILURE! - in com.ditros.mcd.AccidentServiceTest
+testDeclareAccident  Time elapsed: 0.704 s  <<< ERROR!
+java.lang.NullPointerException
+	at com.ditros.mcd.AccidentServiceTest.testDeclareAccident(AccidentServiceTest.java:283)
+
